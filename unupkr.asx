@@ -121,25 +121,21 @@ unupkr
 
 ?updateState
 	lda	(?probs),y
-	sub	#1
-	cmp	?state
-	bcs	?bit1
-	adc	#1	; C=0
+	tax
 	eor	#$ff
-; C=0
-?bit1
+	dex
+	cpx	?state
+	scs:tax
+	stx	?prob
 	php
-	sta	?prob
 
 ; --simplified-prob-update
-	lda	(?probs),y
-	eor	#$ff
 	ror	@
 :3	lsr	@
 	adc	#$f0
 	add:sta	(?probs),y
 
-	txa	; #0
+	lda	#0
 	ldx	#8
 ?mul
 	asl	@
