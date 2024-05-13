@@ -1,0 +1,173 @@
+	opt	?+
+unupkr
+
+?OFFSET_BITS	equ	16
+?LENGTH_BITS	equ	16
+?OFFSET_PROBS	equ	?OFFSET_BITS*2-1
+?LENGTH_PROBS	equ	?LENGTH_BITS*2-1
+?PROBS_LEN	equ	1+255+1+?OFFSET_PROBS+?LENGTH_PROBS
+
+?src	equ	unupkr_zp
+?dest	equ	unupkr_zp+2
+?prev	equ	unupkr_zp+4
+?len	equ	unupkr_zp+6
+?probs	equ	unupkr_zp+8
+?state	equ	unupkr_zp+10
+?prob	equ	unupkr_zp+12
+?bitBuf	equ	unupkr_zp+13
+
+	mvy	#1	?bitBuf
+	lda	#$80
+?init
+	sta	unupkr_probs-1,y
+	sta	unupkr_probs+?PROBS_LEN-256,y
+	iny
+	bne	?init
+	asl	@	; sets C=1
+	tax	; #0
+	sta	?state
+	sta	?state+1
+:<unupkr_probs!=0	lda	#<unupkr_probs
+	sta	?probs
+	bcs	?wasLiteral	; jmp
+
+?unpackLiteral
+	iny	; #1
+?getLiteral
+	jsr	?getBit
+	tya
+	rol	@
+	tay
+	bcc	?getLiteral
+	jsr	?store
+
+?wasLiteral
+	rol	?len	; C=1
+
+?loop
+	ldy	#0
+	mva	#>unupkr_probs	?probs+1
+	jsr	?getBit
+	bcc	?unpackLiteral
+
+	inc	?probs+1
+	lda	?len	; was literal?
+	beq	?getOffset
+	jsr	?getBit
+	bcc	?sameOffset
+?getOffset
+	iny
+	jsr	?getLen
+	lda	#1
+	sbc	?len	; C=1
+	sta	?prev
+	txa	; #0
+	sbc	?len+1
+	bcs	?eof
+	adc	?dest+1	; C=0
+	sta	?prev+1
+?sameOffset
+	ldy	#1+?OFFSET_PROBS
+	jsr	?getLen
+	seq:inc	?len+1
+?copy
+	ldy	?dest
+	lda	(?prev),y
+	jsr	?store
+	dec	?len
+	bne	?copy
+	dec	?len+1
+	bne	?copy
+	beq	?loop	; jmp
+
+?getLen
+	lda	#$80
+	sta	?len+1
+	asl	@
+	sta	?len
+	bcs	?getLen1	; jmp
+?fetchLen
+	iny
+	jsr	?getBit
+	ror	?len+1
+	ror	?len
+	iny
+?getLen1
+	jsr	?getBit
+	bcc	?fetchLen
+; --invert-continue-value-bit
+?padLen
+	ror	?len+1
+	ror	?len
+	bcc	?padLen
+?eof
+	rts
+
+?getBit
+; -b
+	lda	?state+1
+	bmi	?updateState
+?fetchBit
+	lsr	?bitBuf
+	bne	?rolState
+	lda	(?src,x)	; X=0
+	inw	?src
+	ror	@	; C=1
+	sta	?bitBuf
+?rolState
+	rol	?state
+	rol	?state+1
+	bpl	?fetchBit
+
+?updateState
+	lda	(?probs),y
+	cmp	?state
+	bcc	?bit0
+	bne	?bit1
+	clc
+?bit0
+	eor	#$ff
+	adc	#1	; C=0
+; C=0
+?bit1
+	php
+	sta	?prob
+
+; --simplified-prob-update
+	lda	(?probs),y
+	eor	#$ff
+	ror	@
+:3	lsr	@
+	adc	#$f0
+	add:sta	(?probs),y
+
+	txa	; #0
+	ldx	#8
+?mul
+	asl	@
+	rol	?state+1
+	bcc	?mulNot
+	add	?prob
+	scc:inc	?state+1
+?mulNot
+	dex
+	bne	?mul
+	add	?state
+	scc:inc	?state+1
+	plp
+	bcs	?bit1b
+	adc	?prob	; C=0
+	scs:dec	?state+1
+	clc
+?bit1b
+	sta	?state
+	rts
+
+?store
+	sta	(?dest,x)	; X=0
+	inc	?dest
+	bne	?samePage
+	inc	?dest+1
+	inc	?prev+1
+?samePage
+	rts
