@@ -121,13 +121,11 @@ unupkr
 
 ?updateState
 	lda	(?probs),y
+	sub	#1
 	cmp	?state
-	bcc	?bit0
-	bne	?bit1
-	clc
-?bit0
-	eor	#$ff
+	bcs	?bit1
 	adc	#1	; C=0
+	eor	#$ff
 ; C=0
 ?bit1
 	php
@@ -147,7 +145,7 @@ unupkr
 	asl	@
 	rol	?state+1
 	bcc	?mulNot
-	add	?prob
+	adc	?prob	; C=1
 	scc:inc	?state+1
 ?mulNot
 	dex
@@ -156,7 +154,8 @@ unupkr
 	scc:inc	?state+1
 	plp
 	bcs	?bit1b
-	adc	?prob	; C=0
+	sec
+	adc	?prob
 	scs:dec	?state+1
 	clc
 ?bit1b
