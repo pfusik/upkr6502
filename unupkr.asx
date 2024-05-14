@@ -29,12 +29,13 @@ unupkr
 	sta	?state+1
 :<unupkr_probs!=0	lda	#<unupkr_probs
 	sta	?probs
-	ldy	#{jsr}
-	bcs	?loop	; jmp
+	bcs	?loop	; Y=0, jmp
 
 ?unpackCopy
 	inc	?probs+1
-?haveOffset
+	bcs	?getOffset	; jmp
+?branchOffset
+	dey
 	jsr	?getBit
 	bcc	?sameOffset
 ?getOffset
@@ -50,14 +51,14 @@ unupkr
 	stx	?len	; X=0
 	stx	?len+1
 ?sameOffset
-	ldy	#?OFFSET_PROBS
+	ldy	#1+?OFFSET_PROBS
 	sec
 	jsr	?getLen
 	seq:inc	?len+1
 ?copy
 	ldy	?dest
 	lda	(?prev),y
-	ldy	#{bit a:}
+	ldy	#?getOffset-?branchOffset
 ?store
 	sta	(?dest,x)	; X=0
 	inc	?dest
@@ -71,30 +72,30 @@ unupkr
 	bne	?copy
 
 ?loop
-	sty	?haveOffset
+	sty	?branchOffset-1
 	ldy	#0
 	mva	#>unupkr_probs	?probs+1
 	jsr	?getBit
 	bcs	?unpackCopy
 
-	iny	; #1
-	sty	?len
+	sty	?len	; Y=1
 	sty	?len+1
 ?getLiteral
 	jsr	?getBit
+	dey
 	tya
 	rol	@
 	tay
 	bcc	?getLiteral
-	ldy	#{jsr}
+	ldy	#0
 	bcs	?store	; jmp
 
 ?fetchLen
-	jsr	?getNextBit
+	jsr	?getBit
 ?getLen
 	ror	?len+1
 	ror	?len
-	jsr	?getNextBit
+	jsr	?getBit
 	bcc	?fetchLen
 ; --invert-continue-value-bit
 ?padLen
@@ -114,9 +115,6 @@ unupkr
 ?rolState
 	rol	?state
 	rol	?state+1
-	dta	{lda #}
-?getNextBit
-	iny
 ?getBit
 ; -b
 	lda	?state+1
@@ -159,4 +157,5 @@ unupkr
 	clc
 ?bit1b
 	sta	?state
+	iny
 	rts
