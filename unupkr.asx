@@ -56,7 +56,6 @@ unupkr
 	jsr	?getBit
 	bcc	?sameOffset
 ?getOffset
-	iny
 	jsr	?getLen
 	lda	#1
 	sbc	?len	; C=1
@@ -67,7 +66,7 @@ unupkr
 	adc	?dest+1	; C=0
 	sta	?prev+1
 ?sameOffset
-	ldy	#1+?OFFSET_PROBS
+	ldy	#?OFFSET_PROBS
 	jsr	?getLen
 	seq:inc	?len+1
 ?copy
@@ -86,13 +85,11 @@ unupkr
 	stx	?len	; X=0
 	bne	?getLen1	; jmp
 ?fetchLen
-	iny
-	jsr	?getBit
+	jsr	?getNextBit
 	ror	?len+1
 	ror	?len
-	iny
 ?getLen1
-	jsr	?getBit
+	jsr	?getNextBit
 	bcc	?fetchLen
 ; --invert-continue-value-bit
 ?padLen
@@ -102,6 +99,8 @@ unupkr
 ?eof
 	rts
 
+?getNextBit
+	iny
 ?getBit
 ; -b
 	lda	?state+1
