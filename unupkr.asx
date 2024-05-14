@@ -56,7 +56,7 @@ unupkr
 	jsr	?getBit
 	bcc	?sameOffset
 ?getOffset
-	jsr	?getLen
+	jsr	?getLen	; C=1
 	lda	#1
 	sbc	?len	; C=1
 	sta	?prev
@@ -67,6 +67,7 @@ unupkr
 	sta	?prev+1
 ?sameOffset
 	ldy	#?OFFSET_PROBS
+	sec
 	jsr	?getLen
 	seq:inc	?len+1
 ?copy
@@ -80,15 +81,14 @@ unupkr
 	beq	?loop	; jmp
 
 ?getLen
-	lda	#$80
-	sta	?len+1
 	stx	?len	; X=0
-	bne	?getLen1	; jmp
+	stx	?len+1
+	bcs	?getLen1	; jmp
 ?fetchLen
 	jsr	?getNextBit
+?getLen1
 	ror	?len+1
 	ror	?len
-?getLen1
 	jsr	?getNextBit
 	bcc	?fetchLen
 ; --invert-continue-value-bit
