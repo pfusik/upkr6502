@@ -48,6 +48,8 @@ Use as follows:
 
     upkr -9 -b --invert-new-offset-bit --invert-continue-value-bit --simplified-prob-update INPUT_FILE OUTPUT_FILE
 
+If `OUTPUT_FILE` is skipped, it defaults to `INPUT_FILE.upk`.
+
 License
 -------
 
