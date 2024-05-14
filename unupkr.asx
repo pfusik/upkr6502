@@ -17,20 +17,22 @@ unupkr
 ?bitBuf	equ	unupkr_zp+13
 ?wasMatch	equ	unupkr_zp+14
 
-	mvy	#1	?bitBuf
+	mvx	#1	?bitBuf
 	lda	#$80
 ?init
-	sta	unupkr_probs-1,y
-	sta	unupkr_probs+?PROBS_LEN-256,y
-	iny
+	sta	unupkr_probs-1,x
+	sta	unupkr_probs+?PROBS_LEN-256,x
+	inx
 	bne	?init
-	asl	@	; sets C=1
-	tax	; #0
-	sta	?state
-	sta	?state+1
-:<unupkr_probs!=0	lda	#<unupkr_probs
-	sta	?probs
-	bcs	?loop	; jmp
+	stx	?state
+	stx	?state+1
+	ift	<unupkr_probs==0
+	stx	?probs
+	beq	?loop	; jmp
+	els
+	mva	#<unupkr_probs	?probs
+	bne	?loop	; jmp
+	eif
 
 ?unpackCopy
 	inc	?probs+1
