@@ -15,7 +15,7 @@ unupkr
 ?state	equ	unupkr_zp+10
 ?prob	equ	unupkr_zp+12
 ?bitBuf	equ	unupkr_zp+13
-?wasMatch	equ	unupkr_zp+14
+?wasLiteral	equ	unupkr_zp+14
 
 	mvx	#1	?bitBuf
 	lda	#$80
@@ -39,8 +39,8 @@ unupkr
 
 ?unpackCopy
 	inc	?probs+1
-	bit	?wasMatch
-	bvs	?getOffset
+	lsr	?wasLiteral
+	bcc	?getOffset
 	dey
 	jsr	?getBit
 	bcs	?sameOffset
@@ -80,11 +80,11 @@ unupkr
 	ldy	#0
 	mva	#>unupkr_probs	?probs+1
 	jsr	?getBit
-	ror	?wasMatch
-	bmi	?unpackCopy
+	bcs	?unpackCopy
 
 	sty	?len	; Y=1
 	sty	?len+1
+	sty	?wasLiteral
 ?getLiteral
 	jsr	?getBit
 	dey
