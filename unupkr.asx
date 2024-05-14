@@ -29,30 +29,12 @@ unupkr
 	sta	?state+1
 :<unupkr_probs!=0	lda	#<unupkr_probs
 	sta	?probs
-	bcs	?wasLiteral	; jmp
+	ldy	#{jsr}
+	bcs	?loop	; jmp
 
-?unpackLiteral
-	iny	; #1
-?getLiteral
-	jsr	?getBit
-	tya
-	rol	@
-	tay
-	bcc	?getLiteral
-	jsr	?store
-
-?wasLiteral
-	rol	?len	; C=1
-
-?loop
-	ldy	#0
-	mva	#>unupkr_probs	?probs+1
-	jsr	?getBit
-	bcc	?unpackLiteral
-
+?unpackCopy
 	inc	?probs+1
-	lda	?len	; was literal?
-	beq	?getOffset
+?haveOffset
 	jsr	?getBit
 	bcc	?sameOffset
 ?getOffset
@@ -65,6 +47,8 @@ unupkr
 	bcs	?eof
 	adc	?dest+1	; C=0
 	sta	?prev+1
+	stx	?len	; X=0
+	stx	?len+1
 ?sameOffset
 	ldy	#?OFFSET_PROBS
 	sec
@@ -73,20 +57,41 @@ unupkr
 ?copy
 	ldy	?dest
 	lda	(?prev),y
-	jsr	?store
+	ldy	#{bit a:}
+?store
+	sta	(?dest,x)	; X=0
+	inc	?dest
+	bne	?samePage
+	inc	?dest+1
+	inc	?prev+1
+?samePage
 	dec	?len
 	bne	?copy
 	dec	?len+1
 	bne	?copy
-	beq	?loop	; jmp
 
-?getLen
-	stx	?len	; X=0
-	stx	?len+1
-	bcs	?getLen1	; jmp
+?loop
+	sty	?haveOffset
+	ldy	#0
+	mva	#>unupkr_probs	?probs+1
+	jsr	?getBit
+	bcs	?unpackCopy
+
+	iny	; #1
+	sty	?len
+	sty	?len+1
+?getLiteral
+	jsr	?getBit
+	tya
+	rol	@
+	tay
+	bcc	?getLiteral
+	ldy	#{jsr}
+	bcs	?store	; jmp
+
 ?fetchLen
 	jsr	?getNextBit
-?getLen1
+?getLen
 	ror	?len+1
 	ror	?len
 	jsr	?getNextBit
@@ -154,13 +159,4 @@ unupkr
 	clc
 ?bit1b
 	sta	?state
-	rts
-
-?store
-	sta	(?dest,x)	; X=0
-	inc	?dest
-	bne	?samePage
-	inc	?dest+1
-	inc	?prev+1
-?samePage
 	rts
