@@ -29,6 +29,9 @@ unupkr
 	ift	<unupkr_probs==0
 	stx	?probs
 	beq	?loop	; jmp
+	eli	<unupkr_probs==$80
+	sta	?probs
+	beq	?loop	; jmp
 	els
 	mva	#<unupkr_probs	?probs
 	bne	?loop	; jmp
