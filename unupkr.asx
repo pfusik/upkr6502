@@ -38,7 +38,7 @@ unupkr
 	bvs	?getOffset
 	dey
 	jsr	?getBit
-	bcc	?sameOffset
+	bcs	?sameOffset
 ?getOffset
 	sec
 	jsr	?getLen
@@ -54,8 +54,7 @@ unupkr
 	stx	?len+1
 ?sameOffset
 	ldy	#1+?OFFSET_PROBS
-	sec
-	jsr	?getLen
+	jsr	?getLen	; C=1
 	seq:inc	?len+1
 ?copy
 	ldy	?dest
