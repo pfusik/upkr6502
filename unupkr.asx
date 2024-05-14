@@ -83,9 +83,8 @@ unupkr
 ?getLen
 	lda	#$80
 	sta	?len+1
-	asl	@
-	sta	?len
-	bcs	?getLen1	; jmp
+	stx	?len	; X=0
+	bne	?getLen1	; jmp
 ?fetchLen
 	iny
 	jsr	?getBit
