@@ -15,6 +15,7 @@ unupkr
 ?state	equ	unupkr_zp+10
 ?prob	equ	unupkr_zp+12
 ?bitBuf	equ	unupkr_zp+13
+?wasMatch	equ	unupkr_zp+14
 
 	mvy	#1	?bitBuf
 	lda	#$80
@@ -29,17 +30,18 @@ unupkr
 	sta	?state+1
 :<unupkr_probs!=0	lda	#<unupkr_probs
 	sta	?probs
-	bcs	?loop	; Y=0, jmp
+	bcs	?loop	; jmp
 
 ?unpackCopy
 	inc	?probs+1
-	bcs	?getOffset	; jmp
-?branchOffset
+	bit	?wasMatch
+	bvs	?getOffset
 	dey
 	jsr	?getBit
 	bcc	?sameOffset
 ?getOffset
-	jsr	?getLen	; C=1
+	sec
+	jsr	?getLen
 	lda	#1
 	sbc	?len	; C=1
 	sta	?prev
@@ -58,7 +60,6 @@ unupkr
 ?copy
 	ldy	?dest
 	lda	(?prev),y
-	ldy	#?getOffset-?branchOffset
 ?store
 	sta	(?dest,x)	; X=0
 	inc	?dest
@@ -72,11 +73,11 @@ unupkr
 	bne	?copy
 
 ?loop
-	sty	?branchOffset-1
 	ldy	#0
 	mva	#>unupkr_probs	?probs+1
 	jsr	?getBit
-	bcs	?unpackCopy
+	ror	?wasMatch
+	bmi	?unpackCopy
 
 	sty	?len	; Y=1
 	sty	?len+1
@@ -87,7 +88,6 @@ unupkr
 	rol	@
 	tay
 	bcc	?getLiteral
-	ldy	#0
 	bcs	?store	; jmp
 
 ?fetchLen
