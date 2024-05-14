@@ -104,12 +104,6 @@ unupkr
 ?eof
 	rts
 
-?getNextBit
-	iny
-?getBit
-; -b
-	lda	?state+1
-	bmi	?updateState
 ?fetchBit
 	lsr	?bitBuf
 	bne	?rolState
@@ -120,6 +114,12 @@ unupkr
 ?rolState
 	rol	?state
 	rol	?state+1
+	dta	{lda #}
+?getNextBit
+	iny
+?getBit
+; -b
+	lda	?state+1
 	bpl	?fetchBit
 
 ?updateState
