@@ -54,7 +54,7 @@ size_t unupkr(uint8_t *unpacked, const uint8_t *packed)
 	int offset = 0;
 	for (;;) {
 		if (getBit(0)) {
-			if (!wasLiteral || getBit(256)) {
+			if (!wasLiteral || !getBit(256)) {
 				offset = getLen(257) - 1;
 				if (offset == 0)
 					return dest - unpacked;
