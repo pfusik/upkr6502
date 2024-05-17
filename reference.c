@@ -16,10 +16,10 @@ static uint8_t probs[1 + 255 + 1 + OFFSET_PROBS + LENGTH_PROBS];
 static int getBit(int index)
 {
 	while (state < 0x8000) {
-		if (bitBuf <= 1)
-			bitBuf = 0x100 | *src++;
-		state = state << 1 | (bitBuf & 1);
-		bitBuf >>= 1;
+		bitBuf = (bitBuf << 1) & 0x1ff;
+		if (bitBuf == 0x100)
+			bitBuf = *src++ << 1 | 1;
+		state = state << 1 | bitBuf >> 8;
 	}
 	int prob = probs[index];
 	int bit = (state & 0xff) < prob ? 1 : 0;
@@ -47,7 +47,7 @@ size_t unupkr(uint8_t *unpacked, const uint8_t *packed)
 	src = packed;
 	uint8_t *dest = unpacked;
 	state = 0;
-	bitBuf = 1;
+	bitBuf = 0x80;
 	memset(probs, 0x80, sizeof(probs));
 
 	bool wasLiteral = true;

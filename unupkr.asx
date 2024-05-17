@@ -41,13 +41,14 @@ unupkr
 ?bitBuf	equ	unupkr_zp+13
 ?wasLiteral	equ	unupkr_zp+14
 
-	mvx	#1	?bitBuf
+	ldx	#[?PROBS_LEN+1]/2
 	lda	#$80
 ?init
 	sta	unupkr_probs-1,x
-	sta	unupkr_probs+?PROBS_LEN-256,x
-	inx
+	sta	unupkr_probs+?PROBS_LEN/2-1,x
+	dex
 	bne	?init
+	sta	?bitBuf
 	stx	?state
 	stx	?state+1
 	ift	<unupkr_probs==0
@@ -134,11 +135,11 @@ unupkr
 	rts
 
 ?fetchBit
-	lsr	?bitBuf
+	asl	?bitBuf
 	bne	?rolState
 	lda	(?src,x)	; X=0
 	inw	?src
-	ror	@	; C=1
+	rol	@	; C=1
 	sta	?bitBuf
 ?rolState
 	rol	?state
