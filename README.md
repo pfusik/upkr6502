@@ -10,7 +10,7 @@ Use [MADS](http://mads.atari8.info) or [xasm](https://github.com/pfusik/xasm).
 
 Three memory areas are used:
 
-* `unupkr` - 219 bytes of code, not modified (can be put in ROM)
+* `unupkr` - 218 bytes of code, not modified (can be put in ROM)
 * `unupkr_probs` - 319 bytes of uninitialized data (place on page boundary for smallest and fastest code)
 * `unupkr_zp` - 15 bytes of zero-page variables
 

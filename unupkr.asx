@@ -112,8 +112,6 @@ unupkr
 	sty	?wasLiteral
 ?getLiteral
 	jsr	?getBit
-	dey
-	tya
 	rol	@
 	tay
 	bcc	?getLiteral
@@ -135,6 +133,7 @@ unupkr
 	rts
 
 ?fetchBit
+; --big-endian-bitstream
 	asl	?bitBuf
 	bne	?rolState
 	lda	(?src,x)	; X=0
@@ -149,7 +148,6 @@ unupkr
 	lda	?state+1
 	bpl	?fetchBit
 
-?updateState
 	lda	(?probs),y
 	tax
 	eor	#$ff
@@ -185,5 +183,6 @@ unupkr
 	clc
 ?bit1b
 	sta	?state
+	tya
 	iny
 	rts
