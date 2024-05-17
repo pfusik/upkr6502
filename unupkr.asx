@@ -167,7 +167,8 @@ unupkr
 	lda	#0
 	ldx	#8
 ?mul
-	asl	@
+	asl	?state
+	rol	@
 	rol	?state+1
 	bcc	?mulNot
 	adc	?prob	; C=1
@@ -175,8 +176,6 @@ unupkr
 ?mulNot
 	dex
 	bne	?mul
-	add	?state
-	scc:inc	?state+1
 	plp
 	bcs	?bit1b
 	sec
