@@ -201,7 +201,9 @@ unupkr
 	lda	?state+1
 	bpl	?fetchBit
 
-	ift	unupkr_mul==-65
+	ift	unupkr_mul==-1989
+	sta	$fc52	; MATHD
+	eli	unupkr_mul==-65
 	sta	$ffc0	; operand A low
 	eli	unupkr_mul>0
 	sta	?mul1lo+1
@@ -227,24 +229,7 @@ unupkr
 	adc	#$f0
 	add:sta	(?probs),y
 
-	ift	unupkr_mul==-65
-; https://x65.zone
-	stx	$ffc2	; operand B low
-	lda	$ffc4	; multiplication result low
-	add:sta	?state
-	lda	#0
-	adc	$ffc5	; multiplication result high
-	sta	?state+1
-	txa
-	ldx	#0
-	plp
-	bcs	?retBit
-	adc:sta	?state	; C=0
-	scs:dec	?state+1
-	clc
-?retBit
-
-	eli	unupkr_mul==0
+	ift	unupkr_mul==0
 ; slow multiplication
 	lda	#0
 	ldx	#8
@@ -268,7 +253,25 @@ unupkr
 	sta	?state
 
 	els
-; fast multiplication
+
+	ift	unupkr_mul==-1989
+; Atari Lynx
+	stx	$fc54	; MATHB
+	mva	#0	$fc55	; MATHA TODO: stz
+	bit:rmi	$fc92	; SPRSYS
+	lda	$fc60	; MATHH
+	add:sta	?state
+	lda	$fc61	; MATHG
+
+	eli	unupkr_mul==-65
+; https://x65.zone
+	stx	$ffc2	; operand B low
+	lda	$ffc4	; multiplication result low
+	add:sta	?state
+	lda	$ffc5	; multiplication result high
+
+	els
+; lookup table
 	sec
 ?mul1lo
 	lda ?sqr1lo,x
@@ -281,6 +284,8 @@ unupkr
 ?mul2hi
 	sbc ?sqr2hi,x
 	plp
+	eif
+
 	adc	#0
 	sta	?state+1
 	txa

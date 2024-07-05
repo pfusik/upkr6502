@@ -45,15 +45,18 @@ Acceleration
 The routine requires 8-bit by 8-bit multiplication.
 
 For small, portable and slow code, define `unupkr_mul` as zero.
-The multiplication would be performed with a standard 6502 loop.
+The multiplication will be performed with a standard 6502 loop.
 
 For faster execution, point `unupkr_mul` to a temporary page-aligned 2 KB area.
 The code will grow to 305 bytes, become self-modifying, but execute about 50% faster.
 As a bonus, you can use the lookup tables for fast multiplication in your code
 after the routine returns.
 
-The [X65 computer](https://x65.zone) sports hardware multiplication.
-Define `unupkr_mul=-65` to make use of this acceleration.
+[Atari Lynx](https://en.wikipedia.org/wiki/Atari_Lynx) sports hardware multiply.
+Define `unupkr_mul=-1989` to make use of this acceleration.
+
+The [X65 computer](https://x65.zone) also has hardware multiply.
+Define `unupkr_mul=-65` to use it.
 
 Compression
 -----------
