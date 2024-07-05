@@ -1,3 +1,5 @@
+unupkr_mul	equ	0
+; unupkr_mul	equ	$6000	; fast with 2 KB lookup tables
 unupkr_probs	equ	$3e00
 unupkr_zp	equ	$80
 

@@ -14,6 +14,10 @@ Three memory areas are used:
 * `unupkr_probs` - 319 bytes of uninitialized data (place on page boundary for smallest and fastest code)
 * `unupkr_zp` - 15 bytes of zero-page variables
 
+For faster execution, point `unupkr_mul` to a temporary page-aligned 2 KB area.
+The code will grow to 305 bytes, become self-modifying, but execute about 50% faster.
+If you don't need this acceleration, define `unupkr_mul` as zero.
+
 [unupkr.asx](unupkr.asx) uses `opt ?+`. If you use `?`-prefixed
 labels in MADS, you might want to follow the include with `opt ?-`.
 

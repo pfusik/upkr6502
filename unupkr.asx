@@ -31,15 +31,25 @@ unupkr
 ?LENGTH_PROBS	equ	?LENGTH_BITS*2-1
 ?PROBS_LEN	equ	1+255+1+?OFFSET_PROBS+?LENGTH_PROBS
 
+	ift	unupkr_mul>0
+	ert	unupkr_mul&$ff
+?sqr1lo	equ	unupkr_mul
+?sqr1hi	equ	unupkr_mul+$200
+?sqr2lo	equ	unupkr_mul+$400
+?sqr2hi	equ	unupkr_mul+$600
+	eif
+
 ?src	equ	unupkr_zp
 ?dest	equ	unupkr_zp+2
 ?prev	equ	unupkr_zp+4
 ?len	equ	unupkr_zp+6
 ?probs	equ	unupkr_zp+8
 ?state	equ	unupkr_zp+10
-?prob	equ	unupkr_zp+12
-?bitBuf	equ	unupkr_zp+13
-?wasLiteral	equ	unupkr_zp+14
+?bitBuf	equ	unupkr_zp+12
+?wasLiteral	equ	unupkr_zp+13
+	ift	unupkr_mul==0
+?prob	equ	unupkr_zp+14
+	eif
 
 	ldx	#[?PROBS_LEN+1]/2
 	lda	#$80
@@ -53,12 +63,49 @@ unupkr
 	stx	?state+1
 	ift	<unupkr_probs==0
 	stx	?probs
-	beq	?loop	; jmp
 	eli	<unupkr_probs==$80
 	sta	?probs
-	beq	?loop	; jmp
 	els
 	mva	#<unupkr_probs	?probs
+	eif
+
+	ift	unupkr_mul>0
+	stx	?sqr1lo
+	stx	?sqr1hi
+	stx	?sqr2lo+$ff
+	stx	?sqr2hi+$ff
+	ldy	#$ff
+?initSqr1
+	txa
+	lsr	@
+	adc	?sqr1lo,x
+	sta	?sqr1lo+1,x
+	sta	?sqr2lo-1,y
+	sta	?sqr2lo+$100,x
+	lda	#0
+	adc	?sqr1hi,x
+	sta	?sqr1hi+1,x
+	sta	?sqr2hi-1,y
+	sta	?sqr2hi+$100,x
+	inx
+	dey
+	bne	?initSqr1
+?initSqr2
+	tya
+	sbc	#0	; C=0
+	ror	@
+	adc	?sqr1lo+$ff,y
+	sta	?sqr1lo+$100,y
+	lda	#0
+	adc	?sqr1hi+$ff,y
+	sta	?sqr1hi+$100,y
+	iny
+	bne	?initSqr2
+	inx
+	beq	?loop	; jmp
+	eli	<unupkr_probs==0||<unupkr_probs==$80
+	beq	?loop	; jmp
+	els
 	bne	?loop	; jmp
 	eif
 
@@ -148,13 +195,22 @@ unupkr
 	lda	?state+1
 	bpl	?fetchBit
 
+	ift	unupkr_mul>0
+	sta	?mul1lo+1
+	sta	?mul1hi+1
+	eor	#$ff
+	sta	?mul2lo+1
+	sta	?mul2hi+1
+	eif
+
 	lda	(?probs),y
 	tax
 	eor	#$ff
 	dex
 	cpx	?state
 	scs:tax
-	stx	?prob
+:unupkr_mul==0	stx	?prob
+:unupkr_mul!=0	inx
 	php
 
 ; --simplified-prob-update
@@ -163,6 +219,8 @@ unupkr
 	adc	#$f0
 	add:sta	(?probs),y
 
+	ift	unupkr_mul==0
+; slow multiplication
 	lda	#0
 	ldx	#8
 ?mul
@@ -183,6 +241,33 @@ unupkr
 	clc
 ?bit1b
 	sta	?state
+
+	els
+; fast multiplication
+	sec
+?mul1lo
+	lda ?sqr1lo,x
+?mul2lo
+	sbc ?sqr2lo,x
+	php
+	add:sta	?state
+?mul1hi
+	lda ?sqr1hi,x
+?mul2hi
+	sbc ?sqr2hi,x
+	plp
+	adc	#0
+	sta	?state+1
+	txa
+	ldx	#0
+	plp
+	bcs	?retBit
+	adc:sta	?state	; C=0
+	scs:dec	?state+1
+	clc
+?retBit
+	eif
+
 	tya
 	iny
 	rts
