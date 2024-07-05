@@ -69,7 +69,12 @@ unupkr
 	mva	#<unupkr_probs	?probs
 	eif
 
-	ift	unupkr_mul>0
+	ift	unupkr_mul==-65	; https://x65.zone
+	stx	$ffc1	; operand A high
+	stx	$ffc3	; operand B high
+
+	eli	unupkr_mul>0
+; initialize fast multiplication lookup tables
 	stx	?sqr1lo
 	stx	?sqr1hi
 	stx	?sqr2lo+$ff
@@ -102,8 +107,9 @@ unupkr
 	iny
 	bne	?initSqr2
 	inx
-	beq	?loop	; jmp
-	eli	<unupkr_probs==0||<unupkr_probs==$80
+	eif
+
+	ift	unupkr_mul>0||<unupkr_probs==0||<unupkr_probs==$80
 	beq	?loop	; jmp
 	els
 	bne	?loop	; jmp
@@ -195,7 +201,9 @@ unupkr
 	lda	?state+1
 	bpl	?fetchBit
 
-	ift	unupkr_mul>0
+	ift	unupkr_mul==-65
+	sta	$ffc0	; operand A low
+	eli	unupkr_mul>0
 	sta	?mul1lo+1
 	sta	?mul1hi+1
 	eor	#$ff
@@ -219,7 +227,24 @@ unupkr
 	adc	#$f0
 	add:sta	(?probs),y
 
-	ift	unupkr_mul==0
+	ift	unupkr_mul==-65
+; https://x65.zone
+	stx	$ffc2	; operand B low
+	lda	$ffc4	; multiplication result low
+	add:sta	?state
+	lda	#0
+	adc	$ffc5	; multiplication result high
+	sta	?state+1
+	txa
+	ldx	#0
+	plp
+	bcs	?retBit
+	adc:sta	?state	; C=0
+	scs:dec	?state+1
+	clc
+?retBit
+
+	eli	unupkr_mul==0
 ; slow multiplication
 	lda	#0
 	ldx	#8

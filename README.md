@@ -14,10 +14,6 @@ Three memory areas are used:
 * `unupkr_probs` - 319 bytes of uninitialized data (place on page boundary for smallest and fastest code)
 * `unupkr_zp` - 15 bytes of zero-page variables
 
-For faster execution, point `unupkr_mul` to a temporary page-aligned 2 KB area.
-The code will grow to 305 bytes, become self-modifying, but execute about 50% faster.
-If you don't need this acceleration, define `unupkr_mul` as zero.
-
 [unupkr.asx](unupkr.asx) uses `opt ?+`. If you use `?`-prefixed
 labels in MADS, you might want to follow the include with `opt ?-`.
 
@@ -42,6 +38,22 @@ the compressed and uncompressed data. That is, the data being uncompressed can b
 in place of some compressed data which has been already read.
 
 See [test.asx](test.asx) for an example for Atari 8-bit.
+
+Acceleration
+------------
+
+The routine requires 8-bit by 8-bit multiplication.
+
+For small, portable and slow code, define `unupkr_mul` as zero.
+The multiplication would be performed with a standard 6502 loop.
+
+For faster execution, point `unupkr_mul` to a temporary page-aligned 2 KB area.
+The code will grow to 305 bytes, become self-modifying, but execute about 50% faster.
+As a bonus, you can use the lookup tables for fast multiplication in your code
+after the routine returns.
+
+The [X65 computer](https://x65.zone) sports hardware multiplication.
+Define `unupkr_mul=-65` to make use of this acceleration.
 
 Compression
 -----------
