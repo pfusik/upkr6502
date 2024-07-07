@@ -135,13 +135,16 @@ unupkr
 	lda	#1
 	sbc	?len	; C=1
 	sta	?prev
-	txa	; #0
+:?65c02	lda	#0
+:!?65c02	txa	; #0
 	sbc	?len+1
 	bcs	?eof
 	adc	?dest+1	; C=0
 	sta	?prev+1
-	stx	?len	; X=0
-	stx	?len+1
+:?65c02	stz	?len
+:!?65c02	stx	?len	; X=0
+:?65c02	stz	?len+1
+:!?65c02	stx	?len+1
 ?sameOffset
 	ldy	#1+?OFFSET_PROBS
 	jsr	?getLen	; C=1
@@ -300,10 +303,11 @@ unupkr
 
 	adc	#0
 	sta	?state+1
-	txa
-	ldx	#0
+:!?65c02	txa
+:!?65c02	ldx	#0
 	plp
 	bcs	?retBit
+:?65c02	txa
 	adc:sta	?state	; C=0
 	scs:dec	?state+1
 	clc
