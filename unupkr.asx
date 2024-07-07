@@ -39,7 +39,7 @@ unupkr
 ?sqr2hi	equ	unupkr_mul+$600
 	eif
 
-	ift	unupkr_mul==-1989||unupkr_mul==-65
+	ift	unupkr_mul==-1989||unupkr_mul==-$5a22||unupkr_mul==-65
 ?65c02	equ	1
 	opt	c+
 	els
@@ -215,6 +215,8 @@ unupkr
 
 	ift	unupkr_mul==-1989
 	sta	$fc52	; MATHD
+	eli	unupkr_mul==-$5a22
+	sta	$4202	; WRMPYA
 	eli	unupkr_mul==-65
 	sta	$ffc0	; operand A low
 	eli	unupkr_mul>0
@@ -237,6 +239,9 @@ unupkr
 ; Atari Lynx
 	stx	$fc54	; MATHB
 	stz	$fc55	; MATHA
+	eli	unupkr_mul==-$5a22
+; SNES
+	stx	$4203	; WRMPYB
 	eif
 	php
 
@@ -277,6 +282,12 @@ unupkr
 	lda	$fc60	; MATHH
 	add:sta	?state
 	lda	$fc61	; MATHG
+
+	eli	unupkr_mul==-$5a22
+; SNES
+	lda	$4216	; RDMPYL
+	add:sta	?state
+	lda	$4217	; RDMPYH
 
 	eli	unupkr_mul==-65
 ; https://x65.zone

@@ -52,11 +52,18 @@ The code will grow to 305 bytes, become self-modifying, but execute about 50% fa
 As a bonus, you can use the lookup tables for fast multiplication in your code
 after the routine returns.
 
-[Atari Lynx](https://en.wikipedia.org/wiki/Atari_Lynx) sports hardware multiply.
-Define `unupkr_mul=-1989` to make use of this acceleration.
+[Atari Lynx](https://en.wikipedia.org/wiki/Atari_Lynx),
+[SNES](https://en.wikipedia.org/wiki/Super_Nintendo_Entertainment_System)
+and [X65](https://x65.zone)
+all have hardware multiply. Define `unupkr_mul` to a magic value to take advantage of it.
 
-The [X65 computer](https://x65.zone) also has hardware multiply.
-Define `unupkr_mul=-65` to use it.
+| Platform   | `unupkr_mul` | Multiplication           |
+| ---------- | ------------:| ------------------------ |
+| any 6502   |            0 | slow                     |
+| any 6502   |        $hh00 | with a 2 KB lookup table |
+| Atari Lynx |        -1989 | Suzy                     |
+| SNES       |       -$5a22 | Ricoh 5A22               |
+| X65        |          -65 | RIA                      |
 
 Compression
 -----------
