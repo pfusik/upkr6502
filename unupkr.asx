@@ -230,6 +230,11 @@ unupkr
 	scs:tax
 :unupkr_mul==0	stx	?prob
 :unupkr_mul!=0	inx
+	ift	unupkr_mul==-1989
+; Atari Lynx
+	stx	$fc54	; MATHB
+	stz	$fc55	; MATHA
+	eif
 	php
 
 ; --simplified-prob-update
@@ -265,9 +270,7 @@ unupkr
 
 	ift	unupkr_mul==-1989
 ; Atari Lynx
-	stx	$fc54	; MATHB
-	stz	$fc55	; MATHA
-	bit:rmi	$fc92	; SPRSYS
+;	bit:rmi	$fc92	; SPRSYS - no need to check since the mul is started early enough
 	lda	$fc60	; MATHH
 	add:sta	?state
 	lda	$fc61	; MATHG
