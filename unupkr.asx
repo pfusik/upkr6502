@@ -39,6 +39,13 @@ unupkr
 ?sqr2hi	equ	unupkr_mul+$600
 	eif
 
+	ift	unupkr_mul==-1989||unupkr_mul==-65
+?65c02	equ	1
+	opt	c+
+	els
+?65c02	equ	0
+	eif
+
 ?src	equ	unupkr_zp
 ?dest	equ	unupkr_zp+2
 ?prev	equ	unupkr_zp+4
@@ -143,7 +150,8 @@ unupkr
 	ldy	?dest
 	lda	(?prev),y
 ?store
-	sta	(?dest,x)	; X=0
+:?65c02	sta	(?dest)
+:!?65c02	sta	(?dest,x)	; X=0
 	inc	?dest
 	bne	?samePage
 	inc	?dest+1
@@ -189,7 +197,8 @@ unupkr
 ; --big-endian-bitstream
 	asl	?bitBuf
 	bne	?rolState
-	lda	(?src,x)	; X=0
+:?65c02	lda	(?src)
+:!?65c02	lda	(?src,x)	; X=0
 	inw	?src
 	rol	@	; C=1
 	sta	?bitBuf
@@ -257,7 +266,7 @@ unupkr
 	ift	unupkr_mul==-1989
 ; Atari Lynx
 	stx	$fc54	; MATHB
-	mva	#0	$fc55	; MATHA TODO: stz
+	stz	$fc55	; MATHA
 	bit:rmi	$fc92	; SPRSYS
 	lda	$fc60	; MATHH
 	add:sta	?state
