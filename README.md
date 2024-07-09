@@ -48,7 +48,7 @@ For small, portable and slow code, define `unupkr_mul` as zero.
 The multiplication will be performed with a standard 6502 loop.
 
 For faster execution, point `unupkr_mul` to a temporary page-aligned 2 KB area.
-The code will grow to 305 bytes, become self-modifying, but execute about 50% faster.
+The code will grow to 296 bytes, become self-modifying, but execute about 50% faster.
 As a bonus, you can use the lookup tables for fast multiplication in your code
 after the routine returns.
 

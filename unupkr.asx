@@ -82,38 +82,36 @@ unupkr
 
 	eli	unupkr_mul>0
 ; initialize fast multiplication lookup tables
-	stx	?sqr1lo
-	stx	?sqr1hi
-	stx	?sqr2lo+$ff
-	stx	?sqr2hi+$ff
-	ldy	#$ff
-?initSqr1
+	txa
+	tay
+	sta	?sqr1hi-1
+	clc
+?initSqr
+	dey
+	sta	?sqr1lo,x
+	sta	?sqr2lo,y
+	sta	?sqr2lo+$ff,x
+	lda	#0
+	adc	?sqr1hi-1,x
+	sta	?sqr1hi,x
+	sta	?sqr2hi,y
+	sta	?sqr2hi+$ff,x
+	txa
+	lsr	@
+	pha
+	lda	#0
+	ror	@
+	adc	?sqr1lo,x	; C=0
+	sta	?sqr1lo+$100,x
+	pla
+	adc	#$40
+	adc	?sqr1hi,x	; C=0
+	sta	?sqr1hi+$100,x
 	txa
 	lsr	@
 	adc	?sqr1lo,x
-	sta	?sqr1lo+1,x
-	sta	?sqr2lo-1,y
-	sta	?sqr2lo+$100,x
-	lda	#0
-	adc	?sqr1hi,x
-	sta	?sqr1hi+1,x
-	sta	?sqr2hi-1,y
-	sta	?sqr2hi+$100,x
 	inx
-	dey
-	bne	?initSqr1
-?initSqr2
-	tya
-	sbc	#0	; C=0
-	ror	@
-	adc	?sqr1lo+$ff,y
-	sta	?sqr1lo+$100,y
-	lda	#0
-	adc	?sqr1hi+$ff,y
-	sta	?sqr1hi+$100,y
-	iny
-	bne	?initSqr2
-	inx
+	bne	?initSqr
 	eif
 
 	ift	unupkr_mul>0||<unupkr_probs==0||<unupkr_probs==$80
